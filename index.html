@@ -448,24 +448,32 @@ function updatePlayer() {
   // Límite izquierdo
   if (player.x < level.scrollX) player.x = level.scrollX;
   
-  // Colisión con plataformas
+  // Colisión con plataformas — coordenadas de MUNDO (no pantalla)
   player.onGround = false;
   for (const plat of level.platforms) {
-    const px = plat.x - level.scrollX;
-    // Primero comprobar solapamiento horizontal
-    if (player.x + player.w <= px || player.x >= px + plat.w) continue;
-    // Solapamiento vertical — eje Y
-    const prevBottom = player.y + player.h - player.vy;
-    const currBottom = player.y + player.h;
-    // Cayendo hacia abajo: aterrizar encima
-    if (player.vy >= 0 && prevBottom <= plat.y && currBottom >= plat.y) {
-      player.y = plat.y - player.h;
+    // Todo en coordenadas de mundo
+    const platLeft = plat.x;
+    const platRight = plat.x + plat.w;
+    const platTop = plat.y;
+    const platBottom = plat.y + plat.h;
+    const playerLeft = player.x;
+    const playerRight = player.x + player.w;
+    const playerTop = player.y;
+    const playerBottom = player.y + player.h;
+    const prevBottom = playerBottom - player.vy;
+
+    // Sin solapamiento horizontal → ignorar
+    if (playerRight <= platLeft || playerLeft >= platRight) continue;
+
+    // Cayendo: aterrizar encima de la plataforma
+    if (player.vy >= 0 && prevBottom <= platTop + 2 && playerBottom >= platTop) {
+      player.y = platTop - player.h;
       player.vy = 0;
       player.onGround = true;
     }
-    // Subiendo: rebotar contra la parte inferior
-    else if (player.vy < 0 && player.y <= plat.y + plat.h && player.y - player.vy >= plat.y + plat.h) {
-      player.y = plat.y + plat.h;
+    // Subiendo: chocar con la parte inferior
+    else if (player.vy < 0 && playerTop <= platBottom && playerTop - player.vy >= platBottom) {
+      player.y = platBottom;
       player.vy = 0;
     }
   }
@@ -492,22 +500,20 @@ function updatePlayer() {
   if (Math.abs(player.vx) > 0.3) player.frame++;
   if (player.invincible > 0) player.invincible--;
   
-  // Recoger latas
+  // Recoger latas — coordenadas de mundo
   for (const lata of level.latas) {
     if (lata.collected) continue;
-    const lx = lata.x - level.scrollX;
-    if (Math.abs(lx - player.x) < 24 && Math.abs(lata.y - player.y) < 30) {
+    if (Math.abs(lata.x - (player.x + player.w/2)) < 20 && Math.abs(lata.y - (player.y + player.h/2)) < 25) {
       lata.collected = true;
       player.score += lata.val;
       if (player.score < 0) player.score = 0;
     }
   }
   
-  // Colisión con enemigos
+  // Colisión con enemigos — coordenadas de mundo
   if (player.invincible === 0) {
     for (const enemy of level.enemies) {
-      const ex = enemy.x - level.scrollX;
-      if (Math.abs(ex - player.x) < 20 && Math.abs(enemy.y - player.y) < 30) {
+      if (Math.abs(enemy.x - (player.x + player.w/2)) < 18 && Math.abs(enemy.y - (player.y + player.h/2)) < 22) {
         player.hp--;
         player.invincible = 90;
         player.vy = -5;
