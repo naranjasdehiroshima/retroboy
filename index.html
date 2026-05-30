@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rescatadores de Películas</title>
+<title>RetroBoy</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -138,7 +138,7 @@ canvas {
 
 <script>
 // ═══════════════════════════════════════════════
-// RESCATADORES DE PELÍCULAS — Motor Game Boy
+// RETROBOY — Motor Game Boy
 // ═══════════════════════════════════════════════
 
 const canvas = document.getElementById('gameCanvas');
@@ -710,7 +710,7 @@ function drawTitleScreen() {
   ctx.fillStyle = GB.darkest;
   ctx.font = 'bold 14px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('RESCATADORES', W/2, 60);
+  ctx.fillText('RETROBOY', W/2, 60);
   ctx.fillText('DE PELÍCULAS', W/2, 78);
   
   ctx.fillStyle = GB.dark;
@@ -745,7 +745,7 @@ function drawTitleScreen() {
   
   ctx.fillStyle = GB.dark;
   ctx.font = '6px monospace';
-  ctx.fillText('Rescata películas · Evita el nitrato', W/2, 260);
+  ctx.fillText('RetroBoy · NdH Games · Rescata películas', W/2, 260);
   ctx.fillText('Derrota al Moho y la Humedad', W/2, 270);
 }
 
