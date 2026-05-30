@@ -452,18 +452,21 @@ function updatePlayer() {
   player.onGround = false;
   for (const plat of level.platforms) {
     const px = plat.x - level.scrollX;
-    if (player.x + player.w > px && player.x < px + plat.w) {
-      // Desde arriba
-      if (player.y + player.h > plat.y && player.y + player.h < plat.y + plat.h + player.vy + 1 && player.vy >= 0) {
-        player.y = plat.y - player.h;
-        player.vy = 0;
-        player.onGround = true;
-      }
-      // Desde abajo
-      else if (player.y < plat.y + plat.h && player.y > plat.y && player.vy < 0) {
-        player.y = plat.y + plat.h;
-        player.vy = 0;
-      }
+    // Primero comprobar solapamiento horizontal
+    if (player.x + player.w <= px || player.x >= px + plat.w) continue;
+    // Solapamiento vertical — eje Y
+    const prevBottom = player.y + player.h - player.vy;
+    const currBottom = player.y + player.h;
+    // Cayendo hacia abajo: aterrizar encima
+    if (player.vy >= 0 && prevBottom <= plat.y && currBottom >= plat.y) {
+      player.y = plat.y - player.h;
+      player.vy = 0;
+      player.onGround = true;
+    }
+    // Subiendo: rebotar contra la parte inferior
+    else if (player.vy < 0 && player.y <= plat.y + plat.h && player.y - player.vy >= plat.y + plat.h) {
+      player.y = plat.y + plat.h;
+      player.vy = 0;
     }
   }
   
