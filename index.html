@@ -190,6 +190,17 @@ Object.entries(btnMap).forEach(([id, code]) => {
   el.addEventListener('touchend', e => { e.preventDefault(); keys[code] = false; });
 });
 
+// ─── IMÁGENES ──────────────────────────────────────────────────────────────
+var IMG = {};
+var IMG_NAMES = ['moho','clausthofo','fuego_nitrato','arana','censura',
+                 'rollo_olvidado','sindrome_vinagre','humedad_boss','olvido'];
+var imgsLoaded = 0;
+IMG_NAMES.forEach(function(n){
+  IMG[n] = new Image();
+  IMG[n].onload = function(){ imgsLoaded++; };
+  IMG[n].src = 'assets/' + n + '.png';
+});
+
 // ─── SPRITES (dibujados en canvas sin imágenes externas) ───────────────────
 
 // Archivista en pixel art Game Boy (16x24 pixels escalados)
@@ -374,11 +385,13 @@ function createLevel() {
       {x:1400, y:230, type:'NITRATO', val:-20, collected:false},
     ],
     enemies: [
-      {x:300, y:225, dir:1, speed:0.8, w:20, h:20, type:'moho', hp:3, hit:0},
-      {x:700, y:225, dir:-1, speed:1.0, w:20, h:20, type:'moho', hp:3, hit:0},
-      {x:1000, y:225, dir:1, speed:1.2, w:20, h:20, type:'moho', hp:3, hit:0},
-      {x:1500, y:225, dir:-1, speed:0.9, w:20, h:20, type:'humedad', hp:3, hit:0},
-      {x:1800, y:225, dir:1, speed:1.1, w:20, h:20, type:'moho', hp:3, hit:0},
+      {x:300,  y:225, dir:1,  speed:0.8, w:20, h:20, type:'moho',     hp:3, hit:0},
+      {x:600,  y:225, dir:-1, speed:0.9, w:20, h:20, type:'clausthofo',hp:3, hit:0},
+      {x:900,  y:225, dir:1,  speed:1.1, w:20, h:20, type:'censura',  hp:3, hit:0},
+      {x:1200, y:225, dir:-1, speed:1.0, w:20, h:20, type:'arana',    hp:3, hit:0},
+      {x:1500, y:225, dir:1,  speed:0.8, w:20, h:20, type:'humedad',  hp:3, hit:0},
+      {x:1700, y:225, dir:-1, speed:1.2, w:20, h:20, type:'moho',     hp:3, hit:0},
+      {x:1900, y:225, dir:1,  speed:0.7, w:20, h:20, type:'rollo',    hp:3, hit:0},
     ],
     scrollX: 0,
     endX: 1950,
@@ -644,34 +657,46 @@ function drawEnemy(enemy) {
   // Parpadeo al recibir daño
   if (enemy.hit > 0 && Math.floor(enemy.hit / 3) % 2 === 0) return;
   const x = enemy.x - level.scrollX;
-  if (x < -30 || x > W + 30) return;
+  if (x < -60 || x > W + 60) return;
   const y = enemy.y;
-  const flip = enemy.dir < 0;
-  
-  if (enemy.type === 'moho') {
-    // Blob de moho
-    ctx.fillStyle = GB.darkest;
-    ctx.fillRect(x - 10, y - 12, 20, 18);
-    ctx.fillStyle = GB.dark;
-    ctx.fillRect(x - 8, y - 10, 16, 14);
-    // Manchas
-    ctx.fillStyle = GB.darkest;
-    ctx.fillRect(x - 5, y - 8, 4, 4);
-    ctx.fillRect(x + 3, y - 5, 3, 3);
-    ctx.fillRect(x - 2, y - 3, 5, 3);
-    // Ojos malvados
-    ctx.fillStyle = GB.lightest;
-    ctx.fillRect(x - 6, y - 9, 3, 2);
-    ctx.fillRect(x + 3, y - 9, 3, 2);
+
+  // Mapa tipo → nombre de sprite
+  var spriteMap = {
+    'moho': 'moho', 'clausthofo': 'clausthofo',
+    'fuego': 'fuego_nitrato', 'arana': 'arana',
+    'censura': 'censura', 'rollo': 'rollo_olvidado',
+    'humedad': 'humedad_boss', 'vinagre': 'sindrome_vinagre',
+    'olvido': 'olvido'
+  };
+  var spriteName = spriteMap[enemy.type] || 'moho';
+  var img = IMG[spriteName];
+
+  if (img && img.complete && img.naturalWidth > 0) {
+    var sw = enemy.boss ? 64 : 40;
+    var sh = enemy.boss ? 64 : 40;
+    ctx.save();
+    if (enemy.dir < 0) {
+      ctx.translate(x + sw/2, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(img, -sw/2, y - sh, sw, sh);
+    } else {
+      ctx.drawImage(img, x - sw/2, y - sh, sw, sh);
+    }
+    // Barra de vida si tiene más de 1 hp
+    if (enemy.hp < 3) {
+      ctx.fillStyle = GB.darkest;
+      ctx.fillRect(x - sw/2, y - sh - 5, sw, 3);
+      ctx.fillStyle = GB.lightest;
+      ctx.fillRect(x - sw/2, y - sh - 5, sw * (enemy.hp/3), 3);
+    }
+    ctx.restore();
   } else {
-    // Humedad — gota azul-gris
+    // Fallback si imagen no cargó
     ctx.fillStyle = GB.dark;
-    ctx.fillRect(x - 8, y - 14, 16, 20);
-    ctx.fillStyle = GB.light;
-    ctx.fillRect(x - 6, y - 12, 12, 16);
-    ctx.fillRect(x - 2, y - 16, 4, 6);
+    ctx.fillRect(x - 10, y - 20, 20, 20);
     ctx.fillStyle = GB.lightest;
-    ctx.fillRect(x - 4, y - 10, 3, 4);
+    ctx.fillRect(x - 6, y - 16, 6, 6);
+    ctx.fillRect(x + 2, y - 16, 6, 6);
   }
 }
 
