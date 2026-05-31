@@ -1010,11 +1010,13 @@ var musicSource = null;
 var musicPlaying = false;
 
 function initAudio() {
-  if (audioCtx) return;
-  try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    loadTrack('assets/audio/Preservation Team 01 .mp3');
-  } catch(e) { console.log('Audio no disponible'); }
+  if (!audioCtx) {
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      loadTrack('assets/audio/Preservation Team 01 .mp3');
+    } catch(e) {}
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 }
 
 function loadTrack(url) {
@@ -1115,7 +1117,8 @@ function render() {
       
       // Jugador (parpadeo si invencible)
       if (player.invincible === 0 || Math.floor(player.invincible / 6) % 2 === 0) {
-        drawCharacter(player.char, player.x - level.scrollX - 12, player.y - 38, player.frame, player.facing < 0);
+        var spriteH = 44;
+        drawCharacter(player.char, player.x - level.scrollX - 12, player.y + player.h - spriteH, player.frame, player.facing < 0);
       }
       
       // Indicador fin de nivel
@@ -1149,6 +1152,11 @@ function loop() {
 
 // Iniciar
 titleAnim = 0;
+// Precargar música nivel 1 inmediatamente
+try {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  loadTrack('assets/audio/Preservation Team 01 .mp3');
+} catch(e) {}
 loop();
 </script>
 </body>
