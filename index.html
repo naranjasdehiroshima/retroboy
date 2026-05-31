@@ -255,7 +255,7 @@ function drawGB(pixels, x, y, scale, flip=false) {
 function getArchivistaSprite(frame, invincible, onGround, vy) {
   if (invincible > 0 && Math.floor(invincible/6)%2===0) return IMG['arch_idle'];
   if (!onGround && vy < 0) return IMG['arch_jump'];
-  if (Math.abs(player.vx) < 0.3) return IMG['arch_idle'];
+  if (!player || Math.abs(player.vx) < 0.3) return IMG['arch_idle'];
   var wi = Math.floor(frame/5)%7;
   return IMG[['arch_walk1','arch_walk2','arch_walk3','arch_walk4','arch_walk5','arch_walk6','arch_walk7'][wi]];
 }
