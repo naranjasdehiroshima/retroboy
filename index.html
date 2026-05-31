@@ -193,7 +193,10 @@ Object.entries(btnMap).forEach(([id, code]) => {
 // ─── IMÁGENES ──────────────────────────────────────────────────────────────
 var IMG = {};
 var IMG_NAMES = ['moho','clausthofo','fuego_nitrato','arana','censura',
-                 'rollo_olvidado','sindrome_vinagre','humedad_boss','olvido'];
+                 'rollo_olvidado','sindrome_vinagre','humedad_boss','olvido',
+                 'freak_walk1','freak_walk2','freak_walk3','freak_walk4','freak_walk5',
+                 'freak_shoot1','freak_shoot2','freak_shoot3','freak_shoot_wide',
+                 'freak_hit1','freak_hit2'];
 var imgsLoaded = 0;
 IMG_NAMES.forEach(function(n){
   IMG[n] = new Image();
@@ -247,99 +250,73 @@ function drawGB(pixels, x, y, scale, flip=false) {
   });
 }
 
-// Personaje simple en pixel art (para prototipo rápido)
-function drawCharacter(char, x, y, frame, flip=false) {
-  const scale = 2;
+function getFreakSprite(frame, invincible, isShooting) {
+  if (invincible > 0 && Math.floor(invincible/6)%2===0) {
+    return IMG['freak_hit1'];
+  }
+  if (isShooting) {
+    var si = Math.floor(frame/4)%3;
+    return IMG[['freak_shoot1','freak_shoot2','freak_shoot3'][si]];
+  }
+  var wi = Math.floor(frame/6)%5;
+  return IMG[['freak_walk1','freak_walk2','freak_walk3','freak_walk4','freak_walk5'][wi]];
+}
+
+function drawCharacter(char, x, y, frame, flip) {
   ctx.save();
   
-  // Sombra
-  ctx.fillStyle = GB.dark;
-  ctx.fillRect(x + 2, y + 44, 20, 3);
-  
-  if (char === 0) { // Archivista
-    // Pelo
-    ctx.fillStyle = GB.darkest;
-    ctx.fillRect(x+6, y+0, 12, 6);
-    ctx.fillRect(x+4, y+2, 16, 6);
-    // Cara
-    ctx.fillStyle = GB.lightest;
-    ctx.fillRect(x+5, y+6, 14, 12);
-    // Gafas
-    ctx.fillStyle = GB.darkest;
-    ctx.fillRect(x+6, y+10, 4, 3);
-    ctx.fillRect(x+12, y+10, 4, 3);
-    ctx.fillRect(x+10, y+11, 2, 1);
-    // Cuerpo (chaqueta verde)
-    ctx.fillStyle = GB.dark;
-    ctx.fillRect(x+4, y+18, 16, 14);
-    ctx.fillStyle = GB.lightest;
-    ctx.fillRect(x+9, y+18, 6, 8); // camisa
-    // Animación caminar
-    const legFrame = Math.floor(frame / 6) % 4;
-    ctx.fillStyle = GB.darkest;
-    if (legFrame === 0) {
-      ctx.fillRect(x+5, y+32, 5, 10);
-      ctx.fillRect(x+12, y+32, 5, 10);
-    } else if (legFrame === 1) {
-      ctx.fillRect(x+5, y+32, 5, 8);
-      ctx.fillRect(x+11, y+34, 6, 8);
-    } else if (legFrame === 2) {
-      ctx.fillRect(x+5, y+32, 5, 10);
-      ctx.fillRect(x+12, y+32, 5, 10);
-    } else {
-      ctx.fillRect(x+4, y+34, 6, 8);
-      ctx.fillRect(x+12, y+32, 5, 8);
+  if (char === 1) {
+    // El Freak — usar sprites reales
+    var shooting = player && player.shootCooldown > 10;
+    var img = getFreakSprite(frame, player ? player.invincible : 0, shooting);
+    if (img && img.complete && img.naturalWidth > 0) {
+      var sw = 36, sh = 44;
+      if (flip) {
+        ctx.translate(x + sw/2 + 12, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(img, -sw/2, y, sw, sh);
+      } else {
+        ctx.drawImage(img, x, y, sw, sh);
+      }
+      ctx.restore();
+      return;
     }
-    // Zapatos
-    ctx.fillStyle = GB.darkest;
-    ctx.fillRect(x+4, y+42, 7, 3);
-    ctx.fillRect(x+12, y+42, 7, 3);
-    // Brazo con lupa
-    ctx.fillStyle = GB.dark;
-    ctx.fillRect(flip ? x+0 : x+20, y+20, 5, 8);
-    ctx.fillStyle = GB.lightest;
-    ctx.fillRect(flip ? x+0 : x+21, y+27, 4, 4);
-    
-  } else { // Freak del Cine
-    // Gorra
-    ctx.fillStyle = GB.darkest;
-    ctx.fillRect(x+3, y+0, 18, 4);
-    ctx.fillRect(x+5, y+4, 14, 2);
-    // Cara
-    ctx.fillStyle = GB.lightest;
-    ctx.fillRect(x+5, y+6, 14, 12);
-    // Ojo expresivo
-    ctx.fillStyle = GB.darkest;
-    ctx.fillRect(x+7, y+10, 4, 3);
-    ctx.fillRect(x+13, y+10, 4, 3);
-    ctx.fillStyle = GB.lightest;
-    ctx.fillRect(x+8, y+10, 2, 2);
-    ctx.fillRect(x+14, y+10, 2, 2);
-    // Cuerpo (chaqueta azul → dark)
-    ctx.fillStyle = GB.dark;
-    ctx.fillRect(x+4, y+18, 16, 14);
-    // Mochila
-    ctx.fillStyle = GB.darkest;
-    ctx.fillRect(flip ? x+18 : x+0, y+20, 6, 10);
-    ctx.fillStyle = GB.light;
-    ctx.fillRect(flip ? x+19 : x+1, y+22, 4, 3);
-    // Piernas animadas
-    const legFrame = Math.floor(frame / 5) % 4;
-    ctx.fillStyle = GB.darkest;
-    if (legFrame === 0 || legFrame === 2) {
-      ctx.fillRect(x+5, y+32, 5, 10);
-      ctx.fillRect(x+12, y+32, 5, 10);
-    } else if (legFrame === 1) {
-      ctx.fillRect(x+3, y+32, 6, 8);
-      ctx.fillRect(x+12, y+34, 6, 8);
-    } else {
-      ctx.fillRect(x+5, y+34, 6, 8);
-      ctx.fillRect(x+13, y+32, 6, 8);
-    }
-    ctx.fillStyle = GB.darkest;
-    ctx.fillRect(x+4, y+42, 7, 3);
-    ctx.fillRect(x+12, y+42, 7, 3);
   }
+
+  // Fallback pixel art para Archivista o si imagen no carga
+  ctx.fillStyle = GB.dark;
+  ctx.fillRect(x+6, y+0, 12, 6);    // pelo
+  ctx.fillStyle = GB.lightest;
+  ctx.fillRect(x+5, y+6, 14, 12);   // cara
+  ctx.fillStyle = GB.darkest;
+  ctx.fillRect(x+6, y+10, 4, 3);    // gafas izq
+  ctx.fillRect(x+12, y+10, 4, 3);   // gafas der
+  ctx.fillRect(x+10, y+11, 2, 1);   // puente
+  ctx.fillStyle = GB.dark;
+  ctx.fillRect(x+4, y+18, 16, 14);  // cuerpo
+  ctx.fillStyle = GB.lightest;
+  ctx.fillRect(x+9, y+18, 6, 8);    // camisa
+
+  const legFrame = Math.floor(frame/6)%4;
+  ctx.fillStyle = GB.darkest;
+  if (legFrame===0||legFrame===2) {
+    ctx.fillRect(x+5, y+32, 5, 10);
+    ctx.fillRect(x+12, y+32, 5, 10);
+  } else if (legFrame===1) {
+    ctx.fillRect(x+5, y+32, 5, 8);
+    ctx.fillRect(x+11, y+34, 6, 8);
+  } else {
+    ctx.fillRect(x+4, y+34, 6, 8);
+    ctx.fillRect(x+12, y+32, 5, 8);
+  }
+  ctx.fillStyle = GB.darkest;
+  ctx.fillRect(x+4, y+42, 7, 3);
+  ctx.fillRect(x+12, y+42, 7, 3);
+  ctx.fillStyle = GB.dark;
+  ctx.fillRect(flip ? x+0 : x+20, y+20, 5, 8);
+  ctx.fillStyle = GB.lightest;
+  ctx.fillRect(flip ? x+0 : x+21, y+27, 4, 4);
+
   ctx.restore();
 }
 
@@ -870,8 +847,7 @@ function drawTitleScreen() {
   ctx.font = 'bold 14px monospace';
   ctx.textAlign = 'center';
   ctx.fillText('RESCATADORES', W/2, 55);
-  ctx.fillText('DE PELÍCULAS', W/2, 73);
-  ctx.fillText('DE PELÍCULAS', W/2, 78);
+  ctx.fillText('DE PELICULAS', W/2, 73);
   
   ctx.fillStyle = GB.dark;
   ctx.font = '8px monospace';
