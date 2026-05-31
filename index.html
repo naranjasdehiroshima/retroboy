@@ -595,9 +595,8 @@ function updatePlayer() {
       player.score = scoreActual;
       player.hp = hpActual;
       stopMusic();
-      // Cargar música nivel 2
+      musicBuffer = null;
       loadTrack('assets/audio/Preservation Team 02 .mp3');
-      setTimeout(playMusic, 300);
     } else {
       state = STATES.GAMEOVER;
       gameTimer = 180;
